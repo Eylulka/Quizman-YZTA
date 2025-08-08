@@ -1,7 +1,7 @@
 # 🎯 QuizMan – Akıl ve Eğlenceyi Buluşturan Bilgi Yarışması
 
-![QuizMan Banner](https://user-images.githubusercontent.com/yourusername/quizman-banner.png)  
-*(Buraya kendi projenin görselini ekleyebilirsin)*
+
+<img width="1024" height="1024" alt="hangman" src="https://github.com/user-attachments/assets/a3c538fb-5004-4399-82f2-738feef6597e" />
 
 ---
 
