@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QuizMan - Veri Bilimi Adam Asmaca</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fce4ec;
+      color: #4a148c;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #difficulty-screen {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f8bbd0;
+      flex-direction: column;
+      padding: 20px;
+      color: #880e4f;
+    }
+    #difficulty-screen h2 {
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 28px;
+    }
+    .difficulty-btn {
+      background: #ad1457;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      margin: 10px;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 6px rgba(173, 20, 87, 0.5);
+    }
+    .difficulty-btn:hover {
+      background: #880e4f;
+    }
+    #game-container {
+      flex: 1;
+      display: flex;
+      height: 100vh;
+    }
+    #left-panel {
+      flex: 1;
+      background: #fce4ec;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-right: 3px solid #ad1457;
+      padding: 20px;
+    }
+    #left-panel img {
+      max-width: 100%;
+      max-height: 280px;
+      width: 160px;
+      height: auto;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 4px #ad1457aa);
+      border-radius: 20px;
+    }
+    #status {
+      font-size: 20px;
+      font-weight: 700;
+      color: #6a1b9a;
+    }
+    #right-panel {
+      flex: 1;
+      background: #f8bbd0;
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: #4a148c;
+      text-shadow: 0 0 3px #880e4f88;
+      border-left: 3px solid #ad1457;
+    }
+    #question {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 30px;
+      line-height: 1.4;
+    }
+    #answers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    #answers button {
+      flex: 1 1 45%;
+      padding: 16px;
+      font-size: 17px;
+      border: 2px solid #ad1457;
+      background: white;
+      color: #ad1457;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 130px;
+      box-shadow: 0 2px 5px #ad145722;
+    }
+    #answers button:hover:not(:disabled) {
+      background: #ad1457;
+      color: white;
+      box-shadow: 0 5px 15px #ad1457cc;
+    }
+    #answers button.correct {
+      background: #d81b60;
+      border-color: #d81b60;
+      color: white;
+      cursor: default;
+      box-shadow: 0 0 15px #d81b60cc;
+    }
+    #answers button.incorrect {
+      background: #ec407a;
+      border-color: #ec407a;
+      color: white;
+      cursor: default;
+      box-shadow: 0 0 15px #ec407acc;
+    }
+    #answers button:disabled {
+      cursor: default;
+      opacity: 0.75;
+    }
+    #game-over, #victory, #restart {
+      margin-top: 35px;
+      font-size: 26px;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 0 5px #880e4fbb;
+    }
+    #restart {
+      margin-top: 25px;
+      padding: 14px 30px;
+      font-size: 20px;
+      background: #ad1457;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 6px 12px #ad1457aa;
+    }
+    #restart:hover {
+      background: #880e4f;
+    }
+    .hidden {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      #game-container {
+        flex-direction: column;
+      }
+      #left-panel, #right-panel {
+        flex: none;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 3px solid #ad1457;
+        padding: 20px 15px;
+      }
+      #answers button {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="difficulty-screen">
+    <h2>Zorluk Seviyeni Seç</h2>
+    <button class="difficulty-btn" data-level="easy">Kolay</button>
+    <button class="difficulty-btn" data-level="medium">Orta</button>
+    <button class="difficulty-btn" data-level="hard">Zor</button>
+  </div>
+
+  <div id="game-container" class="hidden">
+    <div id="left-panel">
+      <img src="img/hang0.gif" alt="Adam Asmaca" id="hangman-image" />
+      <div id="status">Yanlış Tahmin: 0 / 6</div>
+      <div id="score">Doğru Cevap: 0 / 6</div>
+    </div>
+    <div id="right-panel">
+      <div id="question">Yükleniyor...</div>
+      <div id="answers"></div>
+      <div id="game-over" class="hidden">💀 Oyun Bitti!</div>
+      <div id="victory" class="hidden">🎉 Tebrikler! Kazandın.</div>
+      <button id="restart" class="hidden">↻ Yeniden Başla</button>
+    </div>
+  </div>
+
+  <script>
+    const difficultyScreen = document.getElementById('difficulty-screen');
+    const gameContainer = document.getElementById('game-container');
+    const hangmanImage = document.getElementById('hangman-image');
+    const status = document.getElementById('status');
+    const score = document.getElementById('score');
+    const questionEl = document.getElementById('question');
+    const answersEl = document.getElementById('answers');
+    const gameOverEl = document.getElementById('game-over');
+    const victoryEl = document.getElementById('victory');
+    const restartBtn = document.getElementById('restart');
+
+    const maxWrong = 6;
+    const maxRight = 6;  // Toplam 6 doğru cevap olunca kazanırsın
+    let wrongGuesses = 0;
+    let correctAnswersCount = 0;
+    let currentQuestionIndex = 0;
+    let filteredQuiz = [];
+
+    const quizData = [
+      // Kolay
+      {
+        level: 'easy',
+        question: "Veri bilimi nedir?",
+        answers: [
+          { text: "Verilerden anlamlı bilgiler çıkarma süreci", correct: true },
+          { text: "Sadece veri depolama işlemi", correct: false },
+          { text: "Web tasarımı yapmak", correct: false },
+          { text: "Oyun geliştirmek", correct: false }
+        ],
+      },
+      {
+        level: 'easy',
+        question: "Aşağıdakilerden hangisi veri tipidir?",
+        answers: [
+          { text: "Numerik", correct: true },
+          { text: "Analitik", correct: false },
+          { text: "Kreatif", correct: false },
+          { text: "Hiyerarşik", correct: false }
+        ],
+      },
+      {
+        level: 'easy',
+        question: "Python'da veri bilimi için en çok kullanılan kütüphane hangisidir?",
+        answers: [
+          { text: "Pandas", correct: true },
+          { text: "NumPy", correct: true },
+          { text: "React", correct: false },
+          { text: "TensorFlow", correct: true }
+        ],
+      },
+      {
+        level: 'easy',
+        question: "Hangi yöntem veri görselleştirme için kullanılır?",
+        answers: [
+          { text: "Matplotlib", correct: true },
+          { text: "SQL", correct: false },
+          { text: "HTML", correct: false },
+          { text: "JavaScript", correct: false }
+        ],
+      },
+      {
+        level: 'easy',
+        question: "Veri bilimi sürecinde ilk adım nedir?",
+        answers: [
+          { text: "Veri toplama", correct: true },
+          { text: "Model kurma", correct: false },
+          { text: "Modeli test etme", correct: false },
+          { text: "Sonuçları yorumlama", correct: false }
+        ],
+      },
+      {
+        level: 'easy',
+        question: "Aşağıdakilerden hangisi makine öğrenmesi türüdür?",
+        answers: [
+          { text: "Denetimli öğrenme", correct: true },
+          { text: "Kontrolsüz öğrenme", correct: false },
+          { text: "Denetimsiz öğrenme", correct: true },
+          { text: "Öğrenme yok", correct: false }
+        ],
+      },
+      {
+        level: 'easy',
+        question: "Veri bilimi projelerinde kullanılan dosya formatı hangisidir?",
+        answers: [
+          { text: "CSV", correct: true },
+          { text: "JPEG", correct: false },
+          { text: "MP3", correct: false },
+          { text: "GIF", correct: false }
+        ],
+      },
+
+      // Orta
+      {
+        level: 'medium',
+        question: "Aşağıdaki yöntemlerden hangileri denetimli öğrenmedir? (Birden fazla doğru)",
+        answers: [
+          { text: "Doğrusal Regresyon", correct: true },
+          { text: "Kümeleme", correct: false },
+          { text: "Karar Ağaçları", correct: true },
+          { text: "PCA", correct: false }
+        ],
+      },
+      {
+        level: 'medium',
+        question: "Model doğruluğunu ölçmek için hangi metrikler kullanılır? (Birden fazla doğru)",
+        answers: [
+          { text: "Doğruluk (Accuracy)", correct: true },
+          { text: "Kesinlik (Precision)", correct: true },
+          { text: "Recall", correct: true },
+          { text: "Random Forest", correct: false }
+        ],
+      },
+      {
+        level: 'medium',
+        question: "Hangi algoritmalar kümeleme için uygundur? (Birden fazla doğru)",
+        answers: [
+          { text: "K-Means", correct: true },
+          { text: "DBSCAN", correct: true },
+          { text: "Naive Bayes", correct: false },
+          { text: "SVM", correct: false }
+        ],
+      },
+      {
+        level: 'medium',
+        question: "Overfitting (aşırı öğrenme) nedir?",
+        answers: [
+          { text: "Modelin eğitim verisine çok iyi uyup genel performansının kötü olması", correct: true },
+          { text: "Modelin yeterince öğrenememesi", correct: false },
+          { text: "Veri temizleme işlemi", correct: false },
+          { text: "Modelin hiperparametre ayarı", correct: false }
+        ],
+      },
+      {
+        level: 'medium',
+        question: "Python'da makine öğrenmesi için kullanılan popüler kütüphane hangisidir?",
+        answers: [
+          { text: "Scikit-learn", correct: true },
+          { text: "Flask", correct: false },
+          { text: "Django", correct: false },
+          { text: "BeautifulSoup", correct: false }
+        ],
+      },
+      {
+        level: 'medium',
+        question: "Veri ön işleme adımları nelerdir? (Birden fazla doğru)",
+        answers: [
+          { text: "Eksik verileri tamamlamak", correct: true },
+          { text: "Veri normalizasyonu", correct: true },
+          { text: "Model kurma", correct: false },
+          { text: "Veri dönüştürme", correct: true }
+        ],
+      },
+      {
+        level: 'medium',
+        question: "Hangi durumlarda çapraz doğrulama (cross-validation) kullanılır?",
+        answers: [
+          { text: "Modelin genelleme performansını ölçmek", correct: true },
+          { text: "Veri toplamak için", correct: false },
+          { text: "Veri görselleştirmek için", correct: false },
+          { text: "Modeli hızlandırmak için", correct: false }
+        ],
+      },
+
+      // Zor
+      {
+        level: 'hard',
+        question: "Aşağıdakilerden hangileri derin öğrenme (Deep Learning) modellerindendir? (Birden fazla doğru)",
+        answers: [
+          { text: "Yapay Sinir Ağları (ANN)", correct: true },
+          { text: "Konvolüsyonel Sinir Ağları (CNN)", correct: true },
+          { text: "Karar Ağaçları", correct: false },
+          { text: "Tekrarlayan Sinir Ağları (RNN)", correct: true }
+        ],
+      },
+      {
+        level: 'hard',
+        question: "LSTM (Long Short-Term Memory) nedir?",
+        answers: [
+          { text: "Zaman serisi verilerinde kullanılan RNN tipi", correct: true },
+          { text: "Bir tür karar ağacı", correct: false },
+          { text: "Veri ön işleme yöntemi", correct: false },
+          { text: "Optimizasyon algoritması", correct: false }
+        ],
+      },
+      {
+        level: 'hard',
+        question: "Aşağıdaki optimizasyon algoritmalarından hangileri makine öğrenmesinde kullanılır? (Birden fazla doğru)",
+        answers: [
+          { text: "Gradient Descent", correct: true },
+          { text: "Adam", correct: true },
+          { text: "Simulated Annealing", correct: false },
+          { text: "RMSProp", correct: true }
+        ],
+      },
+      {
+        level: 'hard',
+        question: "ROC ve AUC neyi ifade eder?",
+        answers: [
+          { text: "Modelin sınıflandırma başarısını ölçer", correct: true },
+          { text: "Veri setinin büyüklüğünü gösterir", correct: false },
+          { text: "Veri görselleştirme türüdür", correct: false },
+          { text: "Hiperparametre ayarıdır", correct: false }
+        ],
+      },
+      {
+        level: 'hard',
+        question: "Hangi durumlarda parametrik modeller tercih edilir?",
+        answers: [
+          { text: "Model yapısı önceden belliyse", correct: true },
+          { text: "Veri çok karmaşıksa", correct: false },
+          { text: "Veri azsa", correct: true },
+          { text: "Model karmaşıksa", correct: false }
+        ],
+      },
+      {
+        level: 'hard',
+        question: "Feature engineering nedir?",
+        answers: [
+          { text: "Özellik çıkarımı ve seçimi süreci", correct: true },
+          { text: "Model test etme", correct: false },
+          { text: "Veri toplama", correct: false },
+          { text: "Model optimizasyonu", correct: false }
+        ],
+      },
+      {
+        level: 'hard',
+        question: "Regularization (Düzenleme) yöntemlerinden hangileri vardır? (Birden fazla doğru)",
+        answers: [
+          { text: "L1 (Lasso)", correct: true },
+          { text: "L2 (Ridge)", correct: true },
+          { text: "Dropout", correct: true },
+          { text: "Gradient Boosting", correct: false }
+        ],
+      },
+    ];
+
+    document.querySelectorAll('.difficulty-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const level = button.dataset.level;
+        startGame(level);
+      });
+    });
+
+    function startGame(level) {
+      difficultyScreen.classList.add('hidden');
+      gameContainer.classList.remove('hidden');
+
+      filteredQuiz = quizData.filter(q => q.level === level);
+
+      currentQuestionIndex = 0;
+      wrongGuesses = 0;
+      correctAnswersCount = 0;
+
+      loadQuestion();
+      updateStatus();
+    }
+
+    function loadQuestion() {
+      if (currentQuestionIndex >= filteredQuiz.length) {
+        currentQuestionIndex = 0;
+      }
+
+      hangmanImage.src = `img/hang${wrongGuesses}.gif`;
+      gameOverEl.classList.add('hidden');
+      victoryEl.classList.add('hidden');
+      restartBtn.classList.add('hidden');
+      answersEl.innerHTML = "";
+
+      const currentQuestion = filteredQuiz[currentQuestionIndex];
+      questionEl.textContent = currentQuestion.question;
+
+      currentQuestion.answers.forEach(answer => {
+        const btn = document.createElement('button');
+        btn.textContent = answer.text;
+        btn.dataset.correct = answer.correct;
+        btn.addEventListener('click', selectAnswer);
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function updateStatus() {
+      status.textContent = `Yanlış Tahmin: ${wrongGuesses} / ${maxWrong}`;
+      score.textContent = `Doğru Cevap: ${correctAnswersCount} / ${maxRight}`;
+    }
+
+    function selectAnswer(e) {
+      const btn = e.target;
+      if (btn.disabled) return;
+
+      const isCorrect = btn.dataset.correct === 'true';
+
+      if (isCorrect) {
+        correctAnswersCount++;
+        btn.classList.add('correct');
+        btn.disabled = true;
+        updateStatus();
+
+        if (correctAnswersCount >= maxRight) {
+          victoryEl.classList.remove('hidden');
+          restartBtn.classList.remove('hidden');
+          disableAllButtons();
+        } else {
+          nextQuestion();
+        }
+      } else {
+        wrongGuesses++;
+        hangmanImage.src = `img/hang${wrongGuesses}.gif`;
+        status.textContent = `Yanlış Tahmin: ${wrongGuesses} / ${maxWrong}`;
+        btn.classList.add('incorrect');
+        btn.disabled = true;
+
+        if (wrongGuesses >= maxWrong) {
+          gameOverEl.classList.remove('hidden');
+          restartBtn.classList.remove('hidden');
+          disableAllButtons();
+        }
+      }
+    }
+
+    function disableAllButtons() {
+      const buttons = answersEl.querySelectorAll('button');
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex >= filteredQuiz.length) {
+        currentQuestionIndex = 0;
+      }
+      loadQuestion();
+    }
+
+    restartBtn.addEventListener('click', () => {
+      wrongGuesses = 0;
+      correctAnswersCount = 0;
+      currentQuestionIndex = 0;
+      gameOverEl.classList.add('hidden');
+      victoryEl.classList.add('hidden');
+      restartBtn.classList.add('hidden');
+      loadQuestion();
+      updateStatus();
+    });
+
+  </script>
+</body>
+</html>
+.
